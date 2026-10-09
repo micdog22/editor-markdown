@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Editor Markdown: escreva com pré-visualização e exporte</title>
+  <meta name="description" content="Editor de Markdown no navegador com pré-visualização ao vivo, parser CommonMark e GFM próprio, rolagem sincronizada e exportação para .md, HTML e PDF.">
+  <meta name="theme-color" content="#4f46e5">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./src/app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <h1>Editor Markdown</h1>
+    <p class="lead">Escreva com pré-visualização ao vivo e exporte para Markdown, HTML ou PDF. O texto fica salvo no seu navegador.</p>
+  </header>
+
+  <main id="app">
+    <div class="topbar">
+      <div class="group" role="group" aria-label="Arquivo">
+        <button type="button" class="btn" id="btn-new">Novo</button>
+        <button type="button" class="btn" id="btn-open">Abrir arquivo</button>
+        <button type="button" class="btn" id="btn-sample">Exemplo</button>
+        <input type="file" id="file-input" accept=".md,.markdown,.mdown,.txt,text/markdown,text/plain" hidden>
+      </div>
+      <div class="group" role="group" aria-label="Exportar">
+        <button type="button" class="btn" id="btn-save-md" title="Ctrl+S">Salvar .md</button>
+        <button type="button" class="btn" id="btn-export-html">Exportar HTML</button>
+        <button type="button" class="btn" id="btn-copy-html">Copiar HTML</button>
+        <button type="button" class="btn primary" id="btn-print">Imprimir ou PDF</button>
+      </div>
+      <div class="group segmented" role="group" aria-label="Modo de exibição">
+        <button type="button" class="seg" data-view="split" aria-pressed="true">Lado a lado</button>
+        <button type="button" class="seg" data-view="editor" aria-pressed="false">Editor</button>
+        <button type="button" class="seg" data-view="preview" aria-pressed="false">Visualização</button>
+      </div>
+    </div>
+
+    <div class="toolbar" role="toolbar" aria-label="Formatação" aria-controls="editor">
+      <button type="button" class="tool" data-cmd="bold" aria-label="Negrito" title="Negrito (Ctrl+B)"><b>B</b></button>
+      <button type="button" class="tool" data-cmd="italic" aria-label="Itálico" title="Itálico (Ctrl+I)"><i class="serif">I</i></button>
+      <button type="button" class="tool" data-cmd="strike" aria-label="Tachado" title="Tachado (Ctrl+Shift+X)"><s>S</s></button>
+      <button type="button" class="tool" data-cmd="code" aria-label="Código" title="Código (Ctrl+E)">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 6 3 10l4 4M13 6l4 4-4 4"/></svg>
+      </button>
+      <span class="sep" aria-hidden="true"></span>
+      <button type="button" class="tool" data-cmd="h1" aria-label="Título nível 1" title="Título 1">H1</button>
+      <button type="button" class="tool" data-cmd="h2" aria-label="Título nível 2" title="Título 2">H2</button>
+      <button type="button" class="tool" data-cmd="h3" aria-label="Título nível 3" title="Título 3">H3</button>
+      <span class="sep" aria-hidden="true"></span>
+      <button type="button" class="tool" data-cmd="quote" aria-label="Citação" title="Citação">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h4v4c0 2.5-1.2 4-3.5 4.5M12 6h4v4c0 2.5-1.2 4-3.5 4.5"/></svg>
+      </button>
+      <button type="button" class="tool" data-cmd="bullet" aria-label="Lista com marcadores" title="Lista com marcadores">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 5h9M8 10h9M8 15h9"/><circle cx="4" cy="5" r="1.2" class="fill"/><circle cx="4" cy="10" r="1.2" class="fill"/><circle cx="4" cy="15" r="1.2" class="fill"/></svg>
+      </button>
+      <button type="button" class="tool" data-cmd="ordered" aria-label="Lista numerada" title="Lista numerada">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 5h9M8 10h9M8 15h9M3 3.5l1.2-.8V7M2.8 8.6c.4-.6 1.8-.7 2 .2.2.8-1.9 1.9-2 2.7h2.2M2.8 13.3c.5-.6 2.1-.5 2 .5 0 .6-.7.8-1 .8.6 0 1.2.3 1.1 1-.1.9-1.6 1.1-2.2.4"/></svg>
+      </button>
+      <button type="button" class="tool" data-cmd="task" aria-label="Lista de tarefas" title="Lista de tarefas">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="5" height="5" rx="1"/><path d="m3.6 6 1 1 1.8-2M10 6h7.5M10 14h7.5"/><rect x="2.5" y="11.5" width="5" height="5" rx="1"/></svg>
+      </button>
+      <span class="sep" aria-hidden="true"></span>
+      <button type="button" class="tool" data-cmd="link" aria-label="Link" title="Link (Ctrl+K)">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2.6-2.6a3 3 0 0 0-4.2-4.2l-.9.9M11.5 8.5a3 3 0 0 0-4.2 0l-2.6 2.6a3 3 0 0 0 4.2 4.2l.9-.9"/></svg>
+      </button>
+      <button type="button" class="tool" data-cmd="image" aria-label="Imagem" title="Imagem">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2"/><circle cx="7" cy="8" r="1.5"/><path d="m3 15 4.5-4.5 3 3 2-2 4.5 4"/></svg>
+      </button>
+      <button type="button" class="tool" data-cmd="codeblock" aria-label="Bloco de código" title="Bloco de código">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2"/><path d="M8 8 6 10l2 2M12 8l2 2-2 2"/></svg>
+      </button>
+      <button type="button" class="tool" data-cmd="table" aria-label="Tabela" title="Inserir tabela">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2"/><path d="M2.5 8h15M2.5 12.2h15M8 3.5v13M12.5 3.5v13"/></svg>
+      </button>
+      <button type="button" class="tool" data-cmd="formattable" aria-label="Alinhar tabela sob o cursor" title="Alinhar tabela sob o cursor">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14M7.5 3v14M12.5 3v14"/></svg>
+      </button>
+      <button type="button" class="tool" data-cmd="rule" aria-label="Linha horizontal" title="Linha horizontal">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 10h15"/><path d="M5 5.5h10M5 14.5h10" class="faint"/></svg>
+      </button>
+    </div>
+
+    <div class="workspace" id="workspace" data-view="split">
+      <section class="pane pane-editor" aria-labelledby="editor-label">
+        <div class="pane-head">
+          <label id="editor-label" for="editor">Markdown</label>
+          <span class="muted small" id="editor-hint">Arraste um arquivo .md para cá</span>
+        </div>
+        <textarea id="editor" spellcheck="true" autocomplete="off" autocapitalize="sentences" aria-describedby="keys-hint"></textarea>
+        <div class="drop-overlay" aria-hidden="true"><span>Solte o arquivo para abrir</span></div>
+      </section>
+      <section class="pane pane-preview" aria-labelledby="preview-label">
+        <div class="pane-head">
+          <h2 id="preview-label">Pré-visualização</h2>
+        </div>
+        <div class="preview-scroll" id="preview-scroll" tabindex="0" aria-labelledby="preview-label">
+          <article class="markdown-body" id="preview"></article>
+        </div>
+      </section>
+    </div>
+
+    <div class="statusbar">
+      <span id="stats" aria-live="off">0 palavras</span>
+      <span id="save-status" class="muted"></span>
+    </div>
+    <p class="message" id="message" role="status" aria-live="polite"></p>
+
+    <div class="options">
+      <label class="field">
+        <span>HTML escrito no texto</span>
+        <select id="html-mode">
+          <option value="escape">Mostrar como texto (mais seguro)</option>
+          <option value="sanitize">Permitir um subconjunto seguro</option>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" id="sync-scroll" checked> Rolagem sincronizada</label>
+    </div>
+
+    <p class="muted small" id="keys-hint">Tab indenta e Enter continua listas. Para sair do editor pelo teclado, pressione Esc e depois Tab.</p>
+
+    <details class="card shortcuts">
+      <summary>Atalhos de teclado</summary>
+      <dl>
+        <dt><kbd>Ctrl</kbd> + <kbd>B</kbd></dt><dd>Negrito</dd>
+        <dt><kbd>Ctrl</kbd> + <kbd>I</kbd></dt><dd>Itálico</dd>
+        <dt><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>X</kbd></dt><dd>Tachado</dd>
+        <dt><kbd>Ctrl</kbd> + <kbd>E</kbd></dt><dd>Código</dd>
+        <dt><kbd>Ctrl</kbd> + <kbd>K</kbd></dt><dd>Link</dd>
+        <dt><kbd>Ctrl</kbd> + <kbd>S</kbd></dt><dd>Salvar o arquivo .md</dd>
+        <dt><kbd>Tab</kbd> e <kbd>Shift</kbd> + <kbd>Tab</kbd></dt><dd>Indentar e desindentar</dd>
+        <dt><kbd>Enter</kbd></dt><dd>Continuar a lista (em item vazio, encerra)</dd>
+        <dt><kbd>Esc</kbd> e depois <kbd>Tab</kbd></dt><dd>Sair do editor</dd>
+      </dl>
+      <p class="muted small">No Mac, use <kbd>Cmd</kbd> no lugar de <kbd>Ctrl</kbd>. As caixas das listas de tarefas na pré-visualização podem ser clicadas.</p>
+    </details>
+
+    <dialog id="table-dialog" aria-labelledby="table-title">
+      <form method="dialog" id="table-form">
+        <h2 id="table-title">Inserir tabela</h2>
+        <div class="row">
+          <label class="field"><span>Colunas</span><input type="number" id="table-cols" min="1" max="20" value="3" required></label>
+          <label class="field"><span>Linhas de dados</span><input type="number" id="table-rows" min="0" max="100" value="2" required></label>
+        </div>
+        <label class="field"><span>Alinhamento</span>
+          <select id="table-align">
+            <option value="">Padrão</option>
+            <option value="left">À esquerda</option>
+            <option value="center">Centralizado</option>
+            <option value="right">À direita</option>
+          </select>
+        </label>
+        <pre class="table-preview" id="table-preview" aria-label="Prévia da tabela"></pre>
+        <div class="dialog-actions">
+          <button type="submit" class="btn" value="cancel" formnovalidate>Cancelar</button>
+          <button type="submit" class="btn primary" value="ok" id="table-ok">Inserir</button>
+        </div>
+      </form>
+    </dialog>
+  </main>
+
+  <footer class="site-footer">
+    <p>Tudo roda no seu navegador. Código aberto no <a href="https://github.com/micdog22/editor-markdown">GitHub</a> · Licença MIT</p>
+  </footer>
+</body>
+</html>

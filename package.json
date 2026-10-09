@@ -1,0 +1,11 @@
+{
+  "name": "editor-markdown",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Editor de Markdown no navegador com parser CommonMark e GFM próprio, pré-visualização ao vivo e exportação para HTML e PDF.",
+  "type": "module",
+  "scripts": { "test": "node --test" },
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/micdog22/editor-markdown.git" },
+  "homepage": "https://micdog22.github.io/editor-markdown/"
+}
